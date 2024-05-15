@@ -25,6 +25,12 @@ const startApolloServer = async () => {
 
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
+  app.use(
+    "/graphql",
+    expressMiddleware(server, {
+      context: authMiddleware,
+    })
+  );
   // Important for MERN Setup: When our application runs from production, it functions slightly differently than in development
   // In development, we run two servers concurrently that work together
   // In production, our Node server runs and delivers our client-side bundle from the build/ folder
@@ -32,6 +38,10 @@ const startApolloServer = async () => {
   // if we're in production, serve client/build as static assets
   if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(__dirname, "../client/build")));
+
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+    });
   }
 
   // app.use(routes);
@@ -39,12 +49,6 @@ const startApolloServer = async () => {
   // db.once("open", () => {
   //   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
   // });
-  app.use(
-    "/graphql",
-    expressMiddleware(server, {
-      context: authMiddleware,
-    })
-  );
 
   db.once("open", () => {
     app.listen(PORT, () => {
