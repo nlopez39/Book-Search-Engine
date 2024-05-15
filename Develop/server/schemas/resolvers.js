@@ -7,7 +7,7 @@ const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context.user._id }).populate("books");
+        return User.findOne({ _id: context.user._id });
       }
       throw new AuthenticationError("Please Login");
     },
@@ -28,33 +28,34 @@ const resolvers = {
       const token = signToken(user);
       return { token, user };
     },
-  },
-  addUser: async (parent, { username, email, password }) => {
-    const user = await User.create({ username, email, password });
-    const token = signToken(user);
-    return { token, user };
-  },
-  saveBook: async (parent, { criteria }, context) => {
-    if (context.user) {
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: context.user._id }, //find one
-        { $addToSet: { savedBooks: criteria } }, //update the list of saved books
-        { new: true } //update
-      ).populate("books");
-      return updatedUser;
-    }
-    throw AuthenticationError;
-  },
-  removeBook: async (parent, { bookId }, context) => {
-    if (context.user) {
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: context.user._id },
-        { $pull: { savedBooks: { bookId } } },
-        { new: true }
-      );
-      return updatedUser;
-    }
-    throw AuthenticationError;
+
+    addUser: async (parent, { username, email, password }) => {
+      const user = await User.create({ username, email, password });
+      const token = signToken(user);
+      return { token, user };
+    },
+    saveBook: async (parent, { criteria }, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id }, //find one
+          { $addToSet: { savedBooks: criteria } }, //update the list of saved books
+          { new: true } //update
+        );
+        return updatedUser;
+      }
+      throw AuthenticationError;
+    },
+    removeBook: async (parent, { bookId }, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId } } },
+          { new: true }
+        );
+        return updatedUser;
+      }
+      throw AuthenticationError;
+    },
   },
 };
 
